@@ -91,11 +91,12 @@ GET {BASE}/api/<appid>.json
     "linux": [
       {
         "version": "1.3.0",
-        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.0_amd64.AppImage",
+        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.0/ChmlFrp._1.3.0_amd64.AppImage",
         "size": 81512952,
         "sha256": "cfc080536021...",
         "format": "AppImage",
-        "minOS": ""
+        "minOS": "",
+        "note": "体积超 25MB，走 GitHub 直链"
       }
     ]
   },
