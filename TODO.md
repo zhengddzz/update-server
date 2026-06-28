@@ -18,6 +18,8 @@
 12. **使用一个文件 `api/data.json` 统一维护所有软件版本信息**，方便发布新版本（配套 `scripts/publish.js` 交互式发布脚本）✅
 13. **顶部横条改为加载进度条**（非常驻，加载完淡出 `opacity:0`）✅
 14. **品牌文案改为「ddzz软件更新服务」「提供相关软件自动更新检测API与下载服务」**，删除「基于 EdgeOne Pages 静态托管」字样 ✅
+15. **导入 ChmlFrp-NodeSpeedTest 全部 6 个版本到 `api/data.json`**（v1.0.0 → v1.2.1，安装包链接指向 GitHub Releases）✅
+16. **releaseNotes 中的 markdown 正常渲染**（标题/加粗/链接/列表/表格/分隔线等，详情页用 marked 解析）✅
 
 ## 待办
 
