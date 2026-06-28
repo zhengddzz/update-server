@@ -31,10 +31,10 @@ GET {BASE}/api/data.json
   "apps": [
     {
       "id": "node-selector",
-      "name": "节点推荐器",
-      "version": "1.2.1",
-      "releaseDate": "2026-04-25",
-      "releaseNotes": "修复了修复bug中产生的bug。",
+      "name": "ChmlFrp 社区工具箱",
+      "version": "1.3.0",
+      "releaseDate": "2026-06-28",
+      "releaseNotes": "### 应用改名...",
       "mandatory": false
     }
   ]
@@ -54,46 +54,46 @@ GET {BASE}/api/<appid>.json
 ```json
 {
   "id": "node-selector",
-  "name": "节点推荐器",
-  "version": "1.2.1",
-  "releaseDate": "2026-04-25",
-  "releaseNotes": "修复了修复bug中产生的bug。",
+  "name": "ChmlFrp 社区工具箱",
+  "version": "1.3.0",
+  "releaseDate": "2026-06-28",
+  "releaseNotes": "### 应用改名...",
   "mandatory": false,
   "platforms": {
     "windows": [
       {
-        "version": "1.2.1",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64-setup.exe",
-        "size": 4233252,
-        "sha256": "",
+        "version": "1.3.0",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.0_x64-setup.exe",
+        "size": 3485462,
+        "sha256": "04cd25368829...",
         "format": "exe",
         "minOS": "Windows 10"
       },
       {
-        "version": "1.2.1",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64_zh-CN.msi",
-        "size": 5996544,
-        "sha256": "",
+        "version": "1.3.0",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.0_x64_zh-CN.msi",
+        "size": 5074944,
+        "sha256": "5953e43ad8da...",
         "format": "msi",
         "minOS": "Windows 10"
       }
     ],
     "macos": [
       {
-        "version": "1.2.1",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_aarch64.dmg",
-        "size": 6251560,
-        "sha256": "",
+        "version": "1.3.0",
+        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.0_aarch64.dmg",
+        "size": 5367299,
+        "sha256": "24fda9404caf...",
         "format": "dmg",
         "minOS": "macOS 11"
       }
     ],
     "linux": [
       {
-        "version": "1.2.1",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.AppImage",
-        "size": 80710136,
-        "sha256": "",
+        "version": "1.3.0",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.0_amd64.AppImage",
+        "size": 81512952,
+        "sha256": "cfc080536021...",
         "format": "AppImage",
         "minOS": ""
       }
@@ -101,15 +101,9 @@ GET {BASE}/api/<appid>.json
   },
   "changelog": [
     {
-      "version": "1.2.1",
-      "releaseDate": "2026-04-25",
-      "releaseNotes": "修复了修复bug中产生的bug。",
-      "mandatory": false
-    },
-    {
-      "version": "1.2.0",
-      "releaseDate": "2026-04-25",
-      "releaseNotes": "修复已知问题，优化用户体验。",
+      "version": "1.3.0",
+      "releaseDate": "2026-06-28",
+      "releaseNotes": "### 应用改名...",
       "mandatory": false
     }
   ]
