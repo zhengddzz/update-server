@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件详情</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Spline+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --surface: #fafaf9; --fg: #1c1917; --muted: #78716c;
+    --faint: #a8a29e; --line: #e7e5e4; --accent: #0d9488; --accent-soft: #f0fdfa;
+    --accent-border: #99f6e4; --danger: #dc2626; --danger-soft: #fef2f2; --danger-border: #fecaca;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: 'Spline Sans',-apple-system,sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .progress-bar { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: linear-gradient(90deg,var(--accent),#5eead4); z-index: 999; opacity: 1; transition: width .4s ease, opacity .5s ease .2s; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .back { display: inline-flex; align-items: center; gap: 6px; padding: 24px 0 8px; text-decoration: none; color: var(--muted); font-size: .85rem; transition: color .2s; animation: rise .5s both; }
+  .back:hover { color: var(--accent); }
+
+  header { padding: 16px 0 32px; border-bottom: 1px solid var(--line); animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .app-name { font-family: 'Fraunces',serif; font-size: 2rem; font-weight: 500; letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .app-notes { color: var(--muted); margin-top: 10px; white-space: pre-wrap; font-size: .95rem; }
+  .app-meta { margin-top: 12px; font-size: .82rem; color: var(--faint); }
+
+  .badge { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 999px; font-size: .8rem; font-weight: 500; font-family: 'JetBrains Mono',monospace; }
+  .badge.ver { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
+  .badge.force { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger-border); }
+
+  section.block { padding: 36px 0; border-bottom: 1px solid var(--line); animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .block-title { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 18px; }
+
+  .platform { display: grid; grid-template-columns: 130px 1fr; gap: 16px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; transition: border-color .2s; }
+  .platform:hover { border-color: var(--accent-border); }
+  .platform:last-child { margin-bottom: 0; }
+  .p-label { font-weight: 600; font-size: .95rem; display: flex; flex-direction: column; gap: 2px; }
+  .p-format { font-size: .72rem; font-weight: 400; color: var(--faint); font-family: 'JetBrains Mono',monospace; }
+  .p-line1 { display: flex; gap: 14px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
+  .p-ver { font-family: 'JetBrains Mono',monospace; color: var(--fg); }
+  .p-size { font-variant-numeric: tabular-nums; }
+  .p-dl { margin-top: 8px; }
+  .p-dl a { font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--accent); text-decoration: none; word-break: break-all; border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .p-dl a:hover { border-bottom-color: var(--accent); }
+  .p-hash { margin-top: 5px; font-family: 'JetBrains Mono',monospace; font-size: .72rem; color: var(--faint); word-break: break-all; }
+
+  .ver-item { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .ver-item:last-child { border-bottom: none; }
+  .ver-num { font-family: 'JetBrains Mono',monospace; font-size: .9rem; font-weight: 500; min-width: 80px; }
+  .ver-num .current { color: var(--accent); }
+  .ver-date { font-size: .82rem; color: var(--faint); font-variant-numeric: tabular-nums; min-width: 100px; }
+  .ver-body { flex: 1; }
+  .ver-notes { font-size: .9rem; color: var(--muted); white-space: pre-wrap; }
+  .ver-tag { display: inline-block; margin-left: 8px; font-size: .7rem; padding: 1px 8px; border-radius: 999px; font-family: 'JetBrains Mono',monospace; vertical-align: middle; }
+  .ver-tag.force { background: var(--danger-soft); color: var(--danger); }
+  .ver-tag.cur { background: var(--accent-soft); color: var(--accent); }
+
+  .empty { text-align: center; padding: 80px 20px; color: var(--faint); }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0; }
+  footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  footer span, footer a { font-size: .78rem; color: var(--faint); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  .icp { display: flex; gap: 16px; flex-wrap: wrap; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 600px) { .platform { grid-template-columns: 1fr; } .ver-item { flex-direction: column; gap: 4px; } .ver-date { min-width: 0; } }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progress"></div>
+<div class="wrap">
+  <a class="back" href="index.html">← 返回软件列表</a>
+  <header id="header"><p style="color:var(--faint)">加载中…</p></header>
+  <main id="content"></main>
+</div>
+<footer>
+  <div class="wrap">
+    <div class="icp">
+      <a href="http://beian.miit.gov.cn" target="_blank">粤ICP备2025464402号-1</a>
+      <a href="https://beian.mps.gov.cn/#/query/webSearch?code=44060502004003" rel="noreferrer" target="_blank">粤公网安备44060502004003号</a>
+    </div>
+  </div>
+</footer>
+<script>
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtSize(n){ return n ? (n/1048576).toFixed(2)+' MB' : '—'; }
+const params = new URLSearchParams(location.search);
+const appId = params.get('id');
+const labels = { windows: 'Windows', macos: 'macOS', linux: 'Linux' };
+const order = ['windows', 'macos', 'linux'];
+
+const progress = document.getElementById('progress');
+function finishProgress() {
+  progress.style.width = '100%';
+  setTimeout(() => { progress.style.opacity = '0'; }, 250);
+}
+
+async function load() {
+  progress.style.width = '30%';
+  const res = await fetch('api/data.json');
+  progress.style.width = '70%';
+  const data = await res.json();
+  progress.style.width = '100%';
+  setTimeout(finishProgress, 120);
+
+  const info = (data.apps || []).find(a => a.id === appId);
+
+  if (!info) {
+    document.getElementById('header').innerHTML = '<div class="app-name">未找到软件</div>';
+    document.getElementById('content').innerHTML = `<div class="empty"><p>找不到 ID 为 ${esc(appId || '?')} 的软件</p></div>`;
+    return;
+  }
+
+  document.title = `${info.name} · 软件更新`;
+  let badges = `<span class="badge ver">v${esc(info.version)}</span>`;
+  if (info.mandatory) badges += `<span class="badge force">强制更新</span>`;
+  document.getElementById('header').innerHTML = `
+    <div class="app-name">${esc(info.name)} ${badges}</div>
+    <div class="app-notes">${esc(info.releaseNotes || '（无更新说明）')}</div>
+    <div class="app-meta">发布于 ${esc(info.releaseDate || '—')}</div>`;
+
+  let platformsHtml = '';
+  for (const k of order) {
+    const p = (info.platforms || {})[k];
+    if (!p) continue;
+    platformsHtml += `
+      <div class="platform">
+        <div class="p-label">${labels[k]}<span class="p-format">${esc(p.format || '')}</span></div>
+        <div>
+          <div class="p-line1"><span class="p-ver">v${esc(p.version)}</span><span class="p-size">${fmtSize(p.size)}</span></div>
+          <div class="p-dl"><a href="${esc(p.url)}" target="_blank">${esc(p.url)}</a></div>
+          <div class="p-hash">SHA-256 ${esc(p.sha256 || '—')}</div>
+        </div>
+      </div>`;
+  }
+
+  const changelog = info.changelog || [];
+  let historyHtml = '';
+  changelog.forEach(c => {
+    const isCurrent = c.version === info.version;
+    let tag = '';
+    if (isCurrent) tag = '<span class="ver-tag cur">当前</span>';
+    else if (c.mandatory) tag = '<span class="ver-tag force">强制</span>';
+    historyHtml += `
+      <div class="ver-item">
+        <div class="ver-num"><span class="${isCurrent?'current':''}">v${esc(c.version)}</span></div>
+        <div class="ver-date">${esc(c.releaseDate || '—')}</div>
+        <div class="ver-body">
+          <div class="ver-notes">${esc(c.releaseNotes || '（无说明）')}${tag}</div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('content').innerHTML = `
+    <section class="block" style="animation-delay:.1s">
+      <div class="block-title">当前版本下载</div>
+      ${platformsHtml || '<p style="color:var(--faint)">暂无可用平台安装包</p>'}
+    </section>
+    ${changelog.length ? `
+    <section class="block" style="animation-delay:.2s">
+      <div class="block-title">版本历史</div>
+      ${historyHtml}
+    </section>` : ''}`;
+}
+load().catch(e => {
+  finishProgress();
+  document.getElementById('header').innerHTML = '<div class="app-name">加载失败</div>';
+  document.getElementById('content').innerHTML = `<div class="empty"><p>${esc(e.message||e)}</p></div>`;
+});
+</script>
+</body>
+</html>
