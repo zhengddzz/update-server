@@ -16,52 +16,58 @@ GET {BASE}/api/data.json
 
 返回完整数据，包含全局配置和所有软件的最新版本信息及历史版本。
 
-**响应示例：**
+**响应示例（节选）：**
 
 ```json
 {
   "baseUrl": "https://u.zdzz.top",
-  "siteName": "软件更新服务",
-  "description": "...",
+  "siteName": "ddzz软件更新服务",
+  "description": "提供相关软件自动更新检测API与下载服务",
   "apps": [
     {
       "id": "node-selector",
       "name": "节点推荐器",
-      "version": "1.0.0",
-      "releaseDate": "2026-06-28",
-      "releaseNotes": "首个发布版本。",
+      "version": "1.2.1",
+      "releaseDate": "2026-04-25",
+      "releaseNotes": "修复了修复bug中产生的bug。",
       "mandatory": false,
       "platforms": {
         "windows": {
-          "version": "1.0.0",
-          "url": "https://u.zdzz.top/releases/node-selector/windows/NodeSelector-Setup-1.0.0.exe",
-          "size": 12345678,
-          "sha256": "e3b0c44f...",
+          "version": "1.2.1",
+          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64-setup.exe",
+          "size": 4233252,
+          "sha256": "",
           "format": "exe",
           "minOS": "Windows 10"
         },
         "macos": {
-          "version": "1.0.0",
-          "url": "https://u.zdzz.top/releases/node-selector/macos/NodeSelector-1.0.0.dmg",
-          "size": 9876543,
-          "sha256": "...",
+          "version": "1.2.1",
+          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_aarch64.dmg",
+          "size": 6251560,
+          "sha256": "",
           "format": "dmg",
           "minOS": "macOS 11"
         },
         "linux": {
-          "version": "1.0.0",
-          "url": "https://u.zdzz.top/releases/node-selector/linux/NodeSelector-1.0.0.AppImage",
-          "size": 8765432,
-          "sha256": "...",
+          "version": "1.2.1",
+          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.AppImage",
+          "size": 80710136,
+          "sha256": "",
           "format": "AppImage",
           "minOS": ""
         }
       },
       "changelog": [
         {
-          "version": "1.0.0",
-          "releaseDate": "2026-06-28",
-          "releaseNotes": "首个发布版本。",
+          "version": "1.2.1",
+          "releaseDate": "2026-04-25",
+          "releaseNotes": "修复了修复bug中产生的bug。",
+          "mandatory": false
+        },
+        {
+          "version": "1.2.0",
+          "releaseDate": "2026-04-25",
+          "releaseNotes": "修复已知问题，优化用户体验。",
           "mandatory": false
         }
       ]
@@ -69,6 +75,8 @@ GET {BASE}/api/data.json
   ]
 }
 ```
+
+> `changelog` 从新到旧排列。`url` 为完整下载地址，可直接使用。`sha256` 为空时跳过校验。
 
 ## 字段说明
 
@@ -99,9 +107,9 @@ GET {BASE}/api/data.json
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `version` | string | 该平台版本号 |
-| `url` | string | **完整下载地址**，直接可用 |
+| `url` | string | **完整下载地址**，直接可用（当前指向 GitHub Releases） |
 | `size` | number | 安装包字节数 |
-| `sha256` | string | SHA-256 校验值 |
+| `sha256` | string | SHA-256 校验值（空表示未提供，跳过校验） |
 | `format` | string | 格式：`exe`/`dmg`/`AppImage` 等 |
 | `minOS` | string | 最低系统版本要求 |
 
@@ -113,7 +121,7 @@ GET {BASE}/api/data.json
 2. 从 `apps` 数组中找到 `id` 等于自己软件 ID 的对象
 3. 根据自身平台取 `platforms.<os>` 字段
 4. 比较本地版本与服务端 `version`
-5. 若服务端更新：下载 `url`，用 `sha256` 校验，启动安装
+5. 若服务端更新：下载 `url`，用 `sha256` 校验（非空时），启动安装
 
 ### 平台标识映射
 
@@ -130,7 +138,7 @@ GET {BASE}/api/data.json
 ```js
 const BASE = 'https://u.zdzz.top';
 const APP_ID = 'node-selector';
-const APP_CURRENT_VERSION = '1.0.0';
+const APP_CURRENT_VERSION = '1.2.1';
 
 const data = await (await fetch(`${BASE}/api/data.json`)).json();
 const app = data.apps.find(a => a.id === APP_ID);
@@ -144,9 +152,10 @@ if (!p) throw new Error('当前平台无可用更新');
 if (isNewer(p.version, APP_CURRENT_VERSION)) {
   if (app.mandatory) { /* 强制更新 */ }
   const file = await downloadFile(p.url); // url 已是完整地址
-  if (sha256(file) === p.sha256) {
-    // 启动安装
+  if (p.sha256 && sha256(file) !== p.sha256) {
+    throw new Error('校验失败');
   }
+  // 启动安装
 }
 
 function isNewer(remote, local) {
@@ -176,11 +185,11 @@ var url = win.GetProperty("url").GetString(); // 完整地址
 
 if (new Version(win.GetProperty("version").GetString()) > new Version(CurrentVersion))
 {
-    // 下载 url，校验 SHA256，启动安装
+    // 下载 url，校验 SHA256（非空时），启动安装
 }
 ```
 
 ## 缓存说明
 
 EdgeOne Pages 带 CDN 缓存。发布新版本后可追加时间戳避免缓存：
-`api/data.json?t=20260628`
+`api/data.json?t=20260425`
