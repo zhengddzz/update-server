@@ -4,17 +4,15 @@
  * 用法: node scripts/publish.js
  *
  * 所有数据统一维护在 api/data.json 中。
+ * platforms.<os> 为数组，支持同一平台多个安装包变体（exe/msi/dmg/deb/rpm 等）。
  *
  * 主菜单：
  *   [1] 新建软件        — 创建一款新软件
  *   [2] 为已有软件发布新版本
  *
- * 发布时：
- *   - 输入版本号 / 更新说明 / 是否强制更新
- *   - 为每个平台指定本地安装包，自动计算 size 与 sha256
- *   - 可选把安装包复制到 releases/<appid>/<平台>/ 目录
- *   - 下载链接用 data.json 的 baseUrl 拼成完整地址
- *   - 全部写回 api/data.json（唯一数据源）
+ * 录入安装包时支持两种方式：
+ *   - 本地文件路径：自动计算 size/sha256，可选复制到 releases/<appid>/<平台>/
+ *   - 完整 URL（http/https 开头）：size/sha256 留空，format 从文件名推断
  */
 
 const fs = require('fs');
@@ -28,11 +26,21 @@ const DATA_FILE = path.join(ROOT, 'api', 'data.json');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const ask = (q) => new Promise((r) => rl.question(q, r));
 
+// 平台列表与默认最低系统要求
 const PLATFORMS = [
-  { key: 'windows', format: 'exe', label: 'Windows' },
-  { key: 'macos', format: 'dmg', label: 'macOS' },
-  { key: 'linux', format: 'AppImage', label: 'Linux' },
+  { key: 'windows', label: 'Windows', minOS: 'Windows 10' },
+  { key: 'macos', label: 'macOS', minOS: 'macOS 11' },
+  { key: 'linux', label: 'Linux', minOS: '' },
 ];
+
+// 从文件名/URL 推断安装包格式
+function detectFormat(name) {
+  const f = (name || '').toLowerCase().split('?')[0].split('#')[0];
+  if (f.endsWith('.app.tar.gz') || f.endsWith('.tar.gz')) return 'app.tar.gz';
+  if (f.endsWith('.appimage')) return 'AppImage';
+  const m = f.match(/\.([a-z0-9]+)$/);
+  return m ? m[1] : '';
+}
 
 function sha256(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -48,59 +56,56 @@ function cmpVersion(a, b) {
   return 0;
 }
 
-function readData() {
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-}
+function readData() { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
+function writeData(data) { fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2) + '\n', 'utf8'); }
 
-function writeData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2) + '\n', 'utf8');
-}
-
-async function collectPlatforms(baseUrl, appId, version) {
-  const platforms = {};
-  for (const p of PLATFORMS) {
-    console.log(`\n--- ${p.label} ---`);
-    const ans = (await ask(`  为 ${p.label} 设置安装包吗? (y/N): `)).trim().toLowerCase();
-    if (ans !== 'y') continue;
-    const file = (await ask('  安装包本地路径: '))
-      .trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
-    if (!file || !fs.existsSync(file)) {
+// 为单个平台录入多个安装包，返回数组
+async function collectPlatformPackages(baseUrl, appId, version, p) {
+  const arr = [];
+  console.log(`\n--- ${p.label} ---`);
+  while (true) {
+    const ans = (await ask(`  添加 ${p.label} 安装包? (y/N): `)).trim().toLowerCase();
+    if (ans !== 'y') break;
+    const input = (await ask('  本地路径 或 完整URL (空结束): ')).trim().replace(/^["']|["']$/g, '');
+    if (!input) break;
+    let pkg;
+    if (/^https?:\/\//.test(input)) {
+      // 直接填 URL：size/sha256 留空
+      pkg = { version, url: input, size: 0, sha256: '', format: detectFormat(input), minOS: p.minOS };
+    } else if (fs.existsSync(input)) {
+      // 本地文件：计算 size/sha256，可选复制到仓库
+      const basename = path.basename(input);
+      const finalUrl = `${baseUrl}/releases/${appId}/${p.key}/${basename}`;
+      const relDir = path.join(ROOT, 'releases', appId, p.key);
+      fs.mkdirSync(relDir, { recursive: true });
+      const dest = path.join(relDir, basename);
+      const doCopy = (await ask(`  复制到 ${path.relative(ROOT, dest)}? (Y/n): `)).trim().toLowerCase();
+      if (doCopy !== 'n') { fs.copyFileSync(input, dest); console.log('  已复制。'); }
+      pkg = { version, url: finalUrl, size: fs.statSync(input).size, sha256: sha256(input), format: detectFormat(basename), minOS: p.minOS };
+    } else {
       console.log('  路径无效，跳过。');
       continue;
     }
-    const basename = path.basename(file);
-    const finalUrl = `${baseUrl}/releases/${appId}/${p.key}/${basename}`;
-    const relDir = path.join(ROOT, 'releases', appId, p.key);
-    fs.mkdirSync(relDir, { recursive: true });
-    const dest = path.join(relDir, basename);
-    const doCopy = (await ask(`  复制到 ${path.relative(ROOT, dest)}? (Y/n): `)).trim().toLowerCase();
-    if (doCopy !== 'n') {
-      fs.copyFileSync(file, dest);
-      console.log('  已复制。');
-    }
-    platforms[p.key] = {
-      version,
-      url: finalUrl,
-      size: fs.statSync(file).size,
-      sha256: sha256(file),
-      format: p.format,
-      minOS: '',
-    };
-    console.log(`  下载链接: ${finalUrl}`);
+    arr.push(pkg);
+    console.log(`  ✓ ${pkg.format} -> ${pkg.url}`);
+  }
+  return arr;
+}
+
+// 采集所有平台安装包，返回 platforms 对象（值为数组）
+async function collectPlatforms(baseUrl, appId, version) {
+  const platforms = {};
+  for (const p of PLATFORMS) {
+    const arr = await collectPlatformPackages(baseUrl, appId, version, p);
+    if (arr.length) platforms[p.key] = arr;
   }
   return platforms;
 }
 
 async function createApp(data, baseUrl) {
   const appId = (await ask('软件 ID (英文，如 node-selector): ')).trim();
-  if (!appId || !/^[a-z0-9-]+$/.test(appId)) {
-    console.log('ID 无效，只能含小写字母、数字、连字符。');
-    return;
-  }
-  if ((data.apps || []).some((a) => a.id === appId)) {
-    console.log(`软件 ${appId} 已存在。`);
-    return;
-  }
+  if (!appId || !/^[a-z0-9-]+$/.test(appId)) { console.log('ID 无效，只能含小写字母、数字、连字符。'); return; }
+  if ((data.apps || []).some((a) => a.id === appId)) { console.log(`软件 ${appId} 已存在。`); return; }
   const name = (await ask('软件名称 (如 节点推荐器): ')).trim() || appId;
   const version = (await ask('首个版本号 (如 1.0.0): ')).trim() || '1.0.0';
   const notes = (await ask('更新说明: ')).trim();
@@ -117,16 +122,13 @@ async function createApp(data, baseUrl) {
     changelog: [{ version, releaseDate, releaseNotes: notes, mandatory }],
   });
   writeData(data);
-
   console.log(`\n✓ 已创建软件「${name}」(${appId}) v${version}`);
   console.log(`  接口: ${baseUrl}/api/data.json`);
-  console.log(`  数据文件: api/data.json`);
 }
 
 async function releaseVersion(data, baseUrl) {
   const apps = data.apps || [];
   if (!apps.length) { console.log('暂无软件，请先新建。'); return; }
-
   console.log('\n选择软件:');
   apps.forEach((a, i) => console.log(`  [${i + 1}] ${a.name} (${a.id}) v${a.version}`));
   const idx = parseInt((await ask('\n序号: ')).trim(), 10) - 1;
@@ -147,32 +149,19 @@ async function releaseVersion(data, baseUrl) {
   for (const p of PLATFORMS) {
     console.log(`\n--- ${p.label} ---`);
     const cur = app.platforms[p.key];
-    if (cur) console.log(`  当前: ${cur.url}`);
-    const ans = (await ask(`  为 ${p.label} 设置新安装包吗? (y/N): `)).trim().toLowerCase();
+    if (Array.isArray(cur) && cur.length) {
+      console.log(`  当前 ${cur.length} 个安装包:`);
+      cur.forEach((c) => console.log(`    - ${c.format}: ${c.url}`));
+    }
+    const ans = (await ask(`  重新设置 ${p.label} 安装包吗? (y/N): `)).trim().toLowerCase();
     if (ans !== 'y') {
-      if (cur) cur.version = version;
+      // 沿用旧安装包，仅更新版本号
+      if (Array.isArray(cur)) cur.forEach((c) => { c.version = version; });
       continue;
     }
-    const file = (await ask('  安装包本地路径: '))
-      .trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
-    if (!file || !fs.existsSync(file)) { console.log('  路径无效，跳过。'); continue; }
-    const basename = path.basename(file);
-    const finalUrl = `${baseUrl}/releases/${app.id}/${p.key}/${basename}`;
-    const relDir = path.join(ROOT, 'releases', app.id, p.key);
-    fs.mkdirSync(relDir, { recursive: true });
-    const dest = path.join(relDir, basename);
-    const doCopy = (await ask(`  复制到 ${path.relative(ROOT, dest)}? (Y/n): `)).trim().toLowerCase();
-    if (doCopy !== 'n') { fs.copyFileSync(file, dest); console.log('  已复制。'); }
-    const old = app.platforms[p.key] || {};
-    app.platforms[p.key] = {
-      version,
-      url: finalUrl,
-      size: fs.statSync(file).size,
-      sha256: sha256(file),
-      format: p.format,
-      minOS: old.minOS || '',
-    };
-    console.log(`  下载链接: ${finalUrl}`);
+    const arr = await collectPlatformPackages(baseUrl, app.id, version, p);
+    if (arr.length) app.platforms[p.key] = arr;
+    else delete app.platforms[p.key];
   }
 
   app.version = version;
@@ -187,7 +176,6 @@ async function releaseVersion(data, baseUrl) {
 
   writeData(data);
   console.log(`\n✓ 已发布 ${app.name} v${version}`);
-  console.log(`  数据文件: api/data.json`);
   console.log('\n下一步: git add . && git commit -m "release: ' + app.id + ' v' + version + '" && git push');
 }
 
@@ -198,16 +186,13 @@ async function main() {
   console.log(`更新服务 · baseUrl = ${baseUrl}`);
   console.log(`数据文件: api/data.json`);
   console.log(`软件数量: ${(data.apps || []).length}\n`);
-
   console.log('选择操作:');
   console.log('  [1] 新建软件');
   console.log('  [2] 为已有软件发布新版本');
   const op = (await ask('\n操作 (1/2): ')).trim();
-
   if (op === '1') await createApp(data, baseUrl);
   else if (op === '2') await releaseVersion(data, baseUrl);
   else console.log('无效操作。');
-
   rl.close();
 }
 

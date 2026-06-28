@@ -33,10 +33,13 @@
   section.block { padding: 36px 0; border-bottom: 1px solid var(--line); animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
   .block-title { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 18px; }
 
-  .platform { display: grid; grid-template-columns: 130px 1fr; gap: 16px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; transition: border-color .2s; }
+  .platform-group { margin-bottom: 18px; }
+  .platform-group:last-child { margin-bottom: 0; }
+  .p-group-title { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 10px; }
+  .platform { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; transition: border-color .2s; }
   .platform:hover { border-color: var(--accent-border); }
   .platform:last-child { margin-bottom: 0; }
-  .p-label { font-weight: 600; font-size: .95rem; display: flex; flex-direction: column; gap: 2px; }
+  .p-label { font-weight: 600; font-size: .92rem; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
   .p-format { font-size: .72rem; font-weight: 400; color: var(--faint); font-family: 'JetBrains Mono',monospace; }
   .p-line1 { display: flex; gap: 14px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
   .p-ver { font-family: 'JetBrains Mono',monospace; color: var(--fg); }
@@ -54,6 +57,14 @@
   .ver-body { flex: 1; }
   .ver-notes { font-size: .9rem; color: var(--muted); }
   .app-notes { color: var(--muted); margin-top: 10px; font-size: .95rem; }
+
+  /* 长文本自动折叠 */
+  .ver-notes.collapsible { max-height: 150px; overflow: hidden; position: relative; transition: max-height .35s ease; }
+  .ver-notes.collapsible::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 44px; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; transition: opacity .3s; }
+  .ver-notes.collapsible.expanded { max-height: 2000px; }
+  .ver-notes.collapsible.expanded::after { opacity: 0; }
+  .ver-toggle { display: inline-block; margin-top: 10px; font-size: .8rem; color: var(--accent); cursor: pointer; border: none; background: none; padding: 0; font-family: inherit; }
+  .ver-toggle:hover { text-decoration: underline; }
 
   /* markdown 渲染区 */
   .md-body { line-height: 1.65; }
@@ -151,17 +162,21 @@ async function load() {
 
   let platformsHtml = '';
   for (const k of order) {
-    const p = (info.platforms || {})[k];
-    if (!p) continue;
-    platformsHtml += `
+    const arr = (info.platforms || {})[k];
+    if (!Array.isArray(arr) || !arr.length) continue;
+    platformsHtml += `<div class="platform-group"><div class="p-group-title">${labels[k]}</div>`;
+    arr.forEach(p => {
+      platformsHtml += `
       <div class="platform">
-        <div class="p-label">${labels[k]}<span class="p-format">${esc(p.format || '')}</span></div>
+        <div class="p-label">${esc(p.format || '')}<span class="p-format">${esc((p.url||'').split('.').pop()||'')}</span></div>
         <div>
           <div class="p-line1"><span class="p-ver">v${esc(p.version)}</span><span class="p-size">${fmtSize(p.size)}</span></div>
           <div class="p-dl"><a href="${esc(p.url)}" target="_blank">${esc(p.url)}</a></div>
           <div class="p-hash">SHA-256 ${esc(p.sha256 || '—')}</div>
         </div>
       </div>`;
+    });
+    platformsHtml += `</div>`;
   }
 
   const changelog = info.changelog || [];
@@ -173,10 +188,10 @@ async function load() {
     else if (c.mandatory) tag = '<span class="ver-tag force">强制</span>';
     historyHtml += `
       <div class="ver-item">
-        <div class="ver-num"><span class="${isCurrent?'current':''}">v${esc(c.version)}</span></div>
+        <div class="ver-num"><span class="${isCurrent?'current':''}">v${esc(c.version)}</span>${tag}</div>
         <div class="ver-date">${esc(c.releaseDate || '—')}</div>
         <div class="ver-body">
-          <div class="ver-notes md-body">${md(c.releaseNotes || '（无说明）')}${tag}</div>
+          <div class="ver-notes md-body">${md(c.releaseNotes || '（无说明）')}</div>
         </div>
       </div>`;
   });
@@ -191,6 +206,20 @@ async function load() {
       <div class="block-title">版本历史</div>
       ${historyHtml}
     </section>` : ''}`;
+  // 版本介绍过长时自动折叠，点击展开/收起
+  document.querySelectorAll('.ver-notes').forEach(el => {
+    if (el.scrollHeight > 160 && !el.classList.contains('collapsible')) {
+      el.classList.add('collapsible');
+      const btn = document.createElement('button');
+      btn.className = 'ver-toggle';
+      btn.textContent = '展开 ▾';
+      btn.onclick = () => {
+        const expanded = el.classList.toggle('expanded');
+        btn.textContent = expanded ? '收起 ▴' : '展开 ▾';
+      };
+      el.parentElement.appendChild(btn);
+    }
+  });
 }
 load().catch(e => {
   finishProgress();

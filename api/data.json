@@ -11,30 +11,68 @@
       "releaseNotes": "修复了修复bug中产生的bug。\r\n\r\n---\r\n\r\n**问题反馈**: https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/issues",
       "mandatory": false,
       "platforms": {
-        "windows": {
-          "version": "1.2.1",
-          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64-setup.exe",
-          "size": 4233252,
-          "sha256": "",
-          "format": "exe",
-          "minOS": "Windows 10"
-        },
-        "macos": {
-          "version": "1.2.1",
-          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_aarch64.dmg",
-          "size": 6251560,
-          "sha256": "",
-          "format": "dmg",
-          "minOS": "macOS 11"
-        },
-        "linux": {
-          "version": "1.2.1",
-          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.AppImage",
-          "size": 80710136,
-          "sha256": "",
-          "format": "AppImage",
-          "minOS": ""
-        }
+        "windows": [
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64-setup.exe",
+            "size": 4233252,
+            "sha256": "",
+            "format": "exe",
+            "minOS": "Windows 10"
+          },
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64_zh-CN.msi",
+            "size": 5996544,
+            "sha256": "",
+            "format": "msi",
+            "minOS": "Windows 10"
+          }
+        ],
+        "macos": [
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_aarch64.dmg",
+            "size": 6251560,
+            "sha256": "",
+            "format": "dmg",
+            "minOS": "macOS 11"
+          },
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._aarch64.app.tar.gz",
+            "size": 5728205,
+            "sha256": "",
+            "format": "app.tar.gz",
+            "minOS": "macOS 11"
+          }
+        ],
+        "linux": [
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp.-1.2.1-1.x86_64.rpm",
+            "size": 6115082,
+            "sha256": "",
+            "format": "rpm",
+            "minOS": ""
+          },
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.AppImage",
+            "size": 80710136,
+            "sha256": "",
+            "format": "AppImage",
+            "minOS": ""
+          },
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.deb",
+            "size": 6112660,
+            "sha256": "",
+            "format": "deb",
+            "minOS": ""
+          }
+        ]
       },
       "changelog": [
         {

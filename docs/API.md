@@ -32,30 +32,44 @@ GET {BASE}/api/data.json
       "releaseNotes": "修复了修复bug中产生的bug。",
       "mandatory": false,
       "platforms": {
-        "windows": {
-          "version": "1.2.1",
-          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64-setup.exe",
-          "size": 4233252,
-          "sha256": "",
-          "format": "exe",
-          "minOS": "Windows 10"
-        },
-        "macos": {
-          "version": "1.2.1",
-          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_aarch64.dmg",
-          "size": 6251560,
-          "sha256": "",
-          "format": "dmg",
-          "minOS": "macOS 11"
-        },
-        "linux": {
-          "version": "1.2.1",
-          "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.AppImage",
-          "size": 80710136,
-          "sha256": "",
-          "format": "AppImage",
-          "minOS": ""
-        }
+        "windows": [
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64-setup.exe",
+            "size": 4233252,
+            "sha256": "",
+            "format": "exe",
+            "minOS": "Windows 10"
+          },
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_x64_zh-CN.msi",
+            "size": 5996544,
+            "sha256": "",
+            "format": "msi",
+            "minOS": "Windows 10"
+          }
+        ],
+        "macos": [
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_aarch64.dmg",
+            "size": 6251560,
+            "sha256": "",
+            "format": "dmg",
+            "minOS": "macOS 11"
+          }
+        ],
+        "linux": [
+          {
+            "version": "1.2.1",
+            "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.2.1/ChmlFrp._1.2.1_amd64.AppImage",
+            "size": 80710136,
+            "sha256": "",
+            "format": "AppImage",
+            "minOS": ""
+          }
+        ]
       },
       "changelog": [
         {
@@ -99,10 +113,10 @@ GET {BASE}/api/data.json
 | `releaseDate` | string | 发布日期 `YYYY-MM-DD` |
 | `releaseNotes` | string | 更新说明 |
 | `mandatory` | bool | 是否强制更新 |
-| `platforms.<os>` | object | 各平台安装包信息 |
+| `platforms.<os>` | array | 该平台所有安装包变体列表（数组，每个元素含 version/url/size/sha256/format/minOS） |
 | `changelog` | array | 版本历史（从新到旧） |
 
-### platforms.<os> 字段
+### platforms.<os>[] 数组元素字段
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -146,8 +160,9 @@ if (!app) throw new Error('软件不存在');
 
 const platform = process.platform === 'win32' ? 'windows'
                : process.platform === 'darwin' ? 'macos' : 'linux';
-const p = app.platforms[platform];
-if (!p) throw new Error('当前平台无可用更新');
+const list = app.platforms[platform] || [];
+if (!list.length) throw new Error('当前平台无可用更新');
+const p = list[0]; // 取该平台首个安装包，或按 format 筛选
 
 if (isNewer(p.version, APP_CURRENT_VERSION)) {
   if (app.mandatory) { /* 强制更新 */ }
@@ -180,7 +195,7 @@ var json = await http.GetStringAsync($"{BASE}/api/data.json");
 var data = JsonDocument.Parse(json).RootElement;
 var app = data.GetProperty("apps").EnumerateArray()
     .First(a => a.GetProperty("id").GetString() == APP_ID);
-var win = app.GetProperty("platforms").GetProperty("windows");
+var win = app.GetProperty("platforms").GetProperty("windows")[0];
 var url = win.GetProperty("url").GetString(); // 完整地址
 
 if (new Version(win.GetProperty("version").GetString()) > new Version(CurrentVersion))

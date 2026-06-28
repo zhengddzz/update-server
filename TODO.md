@@ -20,6 +20,8 @@
 14. **品牌文案改为「ddzz软件更新服务」「提供相关软件自动更新检测API与下载服务」**，删除「基于 EdgeOne Pages 静态托管」字样 ✅
 15. **导入 ChmlFrp-NodeSpeedTest 全部 6 个版本到 `api/data.json`**（v1.0.0 → v1.2.1，安装包链接指向 GitHub Releases）✅
 16. **releaseNotes 中的 markdown 正常渲染**（标题/加粗/链接/列表/表格/分隔线等，详情页用 marked 解析）✅
+17. **安装包种类扩展**：每个平台支持多个安装包变体（exe/msi/dmg/app.tar.gz/AppImage/deb/rpm），`platforms.<os>` 改为数组 ✅
+18. **版本介绍过长自动折叠**（默认限高 150px + 渐变遮罩 + "展开/收起"按钮，点击切换）✅
 
 ## 待办
 
