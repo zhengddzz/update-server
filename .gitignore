@@ -3,3 +3,5 @@ node_modules/
 .DS_Store
 .env
 *.tmp
+# OpenAPI 文档仅本地维护，不上传 GitHub
+docs/openapi.yaml
