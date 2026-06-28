@@ -2,7 +2,7 @@
 
 提供相关软件自动更新检测 API 与下载服务。基于 EdgeOne Pages 静态托管（域名 `u.zdzz.top`），无需服务器、无需数据库。
 
-> 所有软件版本信息统一维护在一个文件 `api/data.json` 中，发布新版本只需修改这一个文件。安装包直接引用 GitHub Releases 完整链接，不入库。
+> 每个软件单独一个 API 文件（`api/<appid>.json`），客户端只需请求自己软件的接口。`api/data.json` 仅作为全局索引供首页列表使用。安装包直接引用 GitHub Releases 完整链接，不入库。
 
 ## 工作原理
 
@@ -17,9 +17,10 @@
 ```
 update-server/
 ├── api/
-│   └── data.json          # ★ 唯一数据源（全局配置 + 所有软件版本 + 历史版本）
+│   ├── data.json          # ★ 全局索引（站点配置 + 软件轻量列表）
+│   └── <appid>.json      # ★ 每个软件独立 API（完整数据：版本+平台+changelog）
 ├── scripts/
-│   └── publish.js         # 交互式发布脚本（新建软件 / 发布新版本，操作 data.json）
+│   └── publish.js         # 交互式发布脚本（新建/发布，同步维护索引与单软件文件）
 ├── docs/
 │   └── API.md             # API 接口文档与客户端集成示例
 ├── index.html             # 软件列表页（首页）
@@ -47,10 +48,10 @@ python -m http.server 8765
 node scripts/publish.js
 ```
 
-脚本只读写 `api/data.json` 这一个文件：
+脚本会同时维护 `api/data.json`（索引）和 `api/<appid>.json`（单软件完整数据）：
 
-- **[1] 新建软件** — 输入 ID、名称、版本号，为各平台指定安装包（完整下载链接），自动计算 size 和 SHA-256
-- **[2] 发布新版本** — 选择已有软件，输入新版本号，为需要的平台更换安装包链接，自动追加 changelog
+- **[1] 新建软件** — 输入 ID、名称、版本号，为各平台录入安装包（本地文件或完整 URL），自动计算 size 和 SHA-256，生成 `api/<id>.json` 并追加索引
+- **[2] 发布新版本** — 选择已有软件，输入新版本号，为需要的平台更换安装包，自动追加 changelog，更新单软件文件与索引
 
 ## 部署到 EdgeOne Pages
 
@@ -73,7 +74,7 @@ git push
 
 ### 3. 客户端配置
 
-请求 `https://u.zdzz.top/api/data.json`，从 `apps` 中找到自己软件的 ID。完整接入见 [docs/API.md](docs/API.md)。
+客户端直接请求自己软件的独立 API：`https://u.zdzz.top/api/<appid>.json`。完整接入见 [docs/API.md](docs/API.md)。
 
 ## 发布新版本的日常流程
 

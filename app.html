@@ -138,15 +138,13 @@ function finishProgress() {
 
 async function load() {
   progress.style.width = '30%';
-  const res = await fetch('api/data.json');
+  const res = await fetch(`api/${encodeURIComponent(appId)}.json`);
   progress.style.width = '70%';
-  const data = await res.json();
+  const info = await res.json();
   progress.style.width = '100%';
   setTimeout(finishProgress, 120);
 
-  const info = (data.apps || []).find(a => a.id === appId);
-
-  if (!info) {
+  if (!info || !info.id) {
     document.getElementById('header').innerHTML = '<div class="app-name">未找到软件</div>';
     document.getElementById('content').innerHTML = `<div class="empty"><p>找不到 ID 为 ${esc(appId || '?')} 的软件</p></div>`;
     return;

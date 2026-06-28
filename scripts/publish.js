@@ -22,6 +22,7 @@ const readline = require('readline');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_FILE = path.join(ROOT, 'api', 'data.json');
+const API_DIR = path.join(ROOT, 'api');
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const ask = (q) => new Promise((r) => rl.question(q, r));
@@ -58,6 +59,27 @@ function cmpVersion(a, b) {
 
 function readData() { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
 function writeData(data) { fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2) + '\n', 'utf8'); }
+// 单软件 API 文件路径：api/<appid>.json
+function appFile(appId) { return path.join(API_DIR, `${appId}.json`); }
+// 写入单软件完整数据
+function writeApp(app) { fs.writeFileSync(appFile(app.id), JSON.stringify(app, null, 2) + '\n', 'utf8'); }
+// 同步 data.json 索引（轻量字段）
+function syncIndex(data) {
+  data.apps = (data.apps || []).map(a => {
+    const full = readApp(a.id);
+    return {
+      id: a.id, name: a.name, version: a.version,
+      releaseDate: a.releaseDate, releaseNotes: a.releaseNotes, mandatory: !!a.mandatory
+    };
+  });
+  writeData(data);
+}
+// 读取单软件完整数据（若不存在返回 null）
+function readApp(appId) {
+  const f = appFile(appId);
+  if (!fs.existsSync(f)) return null;
+  return JSON.parse(fs.readFileSync(f, 'utf8'));
+}
 
 // 为单个平台录入多个安装包，返回数组
 async function collectPlatformPackages(baseUrl, appId, version, p) {
@@ -114,16 +136,26 @@ async function createApp(data, baseUrl) {
 
   const platforms = await collectPlatforms(baseUrl, appId, version);
 
-  data.apps = data.apps || [];
-  data.apps.push({
+  // 完整软件数据写入 api/<id>.json
+  const app = {
     id: appId, name, version, releaseDate,
     releaseNotes: notes, mandatory,
     platforms,
     changelog: [{ version, releaseDate, releaseNotes: notes, mandatory }],
+  };
+  writeApp(app);
+
+  // data.json 仅保留轻量索引
+  data.apps = data.apps || [];
+  data.apps.push({
+    id: appId, name, version, releaseDate,
+    releaseNotes: notes, mandatory,
   });
   writeData(data);
+
   console.log(`\n✓ 已创建软件「${name}」(${appId}) v${version}`);
-  console.log(`  接口: ${baseUrl}/api/data.json`);
+  console.log(`  软件API: ${baseUrl}/api/${appId}.json`);
+  console.log(`  索引:    ${baseUrl}/api/data.json`);
 }
 
 async function releaseVersion(data, baseUrl) {
@@ -133,7 +165,10 @@ async function releaseVersion(data, baseUrl) {
   apps.forEach((a, i) => console.log(`  [${i + 1}] ${a.name} (${a.id}) v${a.version}`));
   const idx = parseInt((await ask('\n序号: ')).trim(), 10) - 1;
   if (isNaN(idx) || idx < 0 || idx >= apps.length) { console.log('无效选择。'); return; }
-  const app = apps[idx];
+  const idxEntry = apps[idx];
+  // 从单软件文件读取完整数据
+  const app = readApp(idxEntry.id);
+  if (!app) { console.log(`错误: api/${idxEntry.id}.json 不存在，请先新建。`); return; }
 
   console.log(`\n当前版本: ${app.version}`);
   const version = (await ask('新版本号 (如 1.1.0): ')).trim();
@@ -155,7 +190,6 @@ async function releaseVersion(data, baseUrl) {
     }
     const ans = (await ask(`  重新设置 ${p.label} 安装包吗? (y/N): `)).trim().toLowerCase();
     if (ans !== 'y') {
-      // 沿用旧安装包，仅更新版本号
       if (Array.isArray(cur)) cur.forEach((c) => { c.version = version; });
       continue;
     }
@@ -174,8 +208,18 @@ async function releaseVersion(data, baseUrl) {
   app.changelog.unshift({ version, releaseDate, releaseNotes: notes, mandatory });
   app.changelog.sort((a, b) => cmpVersion(b.version, a.version));
 
+  // 写入单软件文件
+  writeApp(app);
+  // 同步 data.json 索引
+  idxEntry.name = app.name;
+  idxEntry.version = app.version;
+  idxEntry.releaseDate = app.releaseDate;
+  idxEntry.releaseNotes = app.releaseNotes;
+  idxEntry.mandatory = app.mandatory;
   writeData(data);
+
   console.log(`\n✓ 已发布 ${app.name} v${version}`);
+  console.log(`  软件API: ${baseUrl}/api/${app.id}.json`);
   console.log('\n下一步: git add . && git commit -m "release: ' + app.id + ' v' + version + '" && git push');
 }
 
