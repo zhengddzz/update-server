@@ -32,9 +32,9 @@ GET {BASE}/api/data.json
     {
       "id": "node-selector",
       "name": "ChmlFrp 社区工具箱",
-      "version": "1.3.0",
-      "releaseDate": "2026-06-28",
-      "releaseNotes": "### 应用改名...",
+      "version": "1.3.1",
+      "releaseDate": "2026-06-29",
+      "releaseNotes": "- 新增 DNS 容灾监控模块...",
       "mandatory": false
     }
   ]
@@ -55,45 +55,69 @@ GET {BASE}/api/<appid>.json
 {
   "id": "node-selector",
   "name": "ChmlFrp 社区工具箱",
-  "version": "1.3.0",
-  "releaseDate": "2026-06-28",
-  "releaseNotes": "### 应用改名...",
+  "version": "1.3.1",
+  "releaseDate": "2026-06-29",
+  "releaseNotes": "- 新增 DNS 容灾监控模块...",
   "mandatory": false,
   "platforms": {
     "windows": [
       {
-        "version": "1.3.0",
-        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.0_x64-setup.exe",
-        "size": 3485462,
-        "sha256": "04cd25368829...",
+        "version": "1.3.1",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.1_x64-setup.exe",
+        "size": 3709238,
+        "sha256": "8c6f1900aa6b...",
         "format": "exe",
         "minOS": "Windows 10"
       },
       {
-        "version": "1.3.0",
-        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.0_x64_zh-CN.msi",
-        "size": 5074944,
-        "sha256": "5953e43ad8da...",
+        "version": "1.3.1",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.1_x64_zh-CN.msi",
+        "size": 5378048,
+        "sha256": "f8348604ea05...",
         "format": "msi",
         "minOS": "Windows 10"
       }
     ],
     "macos": [
       {
-        "version": "1.3.0",
-        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.0_aarch64.dmg",
-        "size": 5367299,
-        "sha256": "24fda9404caf...",
+        "version": "1.3.1",
+        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.1_aarch64.dmg",
+        "size": 5647326,
+        "sha256": "4690658505cf...",
         "format": "dmg",
+        "minOS": "macOS 11"
+      },
+      {
+        "version": "1.3.1",
+        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._aarch64.app.tar.gz",
+        "size": 4934924,
+        "sha256": "19c50528db68...",
+        "format": "app.tar.gz",
         "minOS": "macOS 11"
       }
     ],
     "linux": [
       {
-        "version": "1.3.0",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.0/ChmlFrp._1.3.0_amd64.AppImage",
-        "size": 81512952,
-        "sha256": "cfc080536021...",
+        "version": "1.3.1",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.1_amd64.deb",
+        "size": 5466816,
+        "sha256": "61a79e828265...",
+        "format": "deb",
+        "minOS": ""
+      },
+      {
+        "version": "1.3.1",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp.-1.3.1-1.x86_64.rpm",
+        "size": 5468013,
+        "sha256": "ba700cafeebd...",
+        "format": "rpm",
+        "minOS": ""
+      },
+      {
+        "version": "1.3.1",
+        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.1/ChmlFrp._1.3.1_amd64.AppImage",
+        "size": 81869304,
+        "sha256": "",
         "format": "AppImage",
         "minOS": "",
         "note": "体积超 25MB，走 GitHub 直链"
@@ -102,9 +126,9 @@ GET {BASE}/api/<appid>.json
   },
   "changelog": [
     {
-      "version": "1.3.0",
-      "releaseDate": "2026-06-28",
-      "releaseNotes": "### 应用改名...",
+      "version": "1.3.1",
+      "releaseDate": "2026-06-29",
+      "releaseNotes": "- 新增 DNS 容灾监控模块...",
       "mandatory": false
     }
   ]
@@ -184,7 +208,7 @@ GET {BASE}/api/<appid>.json
 ```js
 const BASE = 'https://u.zdzz.top';
 const APP_ID = 'node-selector';
-const APP_CURRENT_VERSION = '1.2.1';
+const APP_CURRENT_VERSION = '1.3.0';
 
 // 直接请求该软件的独立 API
 const app = await (await fetch(`${BASE}/api/${APP_ID}.json`)).json();

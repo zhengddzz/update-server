@@ -6,9 +6,9 @@
     {
       "id": "node-selector",
       "name": "ChmlFrp 社区工具箱",
-      "version": "1.3.0",
-      "releaseDate": "2026-06-28",
-      "releaseNotes": "### 应用改名\r\n\r\nproductName 改为 \"ChmlFrp 社区工具箱\"，package.json 改为 chmlfrp-community-toolbox\r\n\r\n### 自动更新完全重构\r\n\r\n移除 Tauri updater 插件（与新版 API 缺少签名支持不兼容）\r\n\r\n新增 commands/update.rs：自研 check_app_update / download_app_update / install_app_update / get_pending_installer / clear_pending_installer\r\n\r\n修复 AppUpdateInfo 字段名不匹配（添加 #[serde(rename_all = \"camelCase\")]）\r\n\r\n修复 GitHub 下载失败（移除 no_proxy() 让 reqwest 使用系统代理）\r\n\r\nMarkdown 渲染支持 --- 分隔线与 [text](url) 链接，并规范化 \\r\\n\r\n\r\n### 下载交互改造\r\n\r\n下载进度从弹窗小窗改为设置页 UpdateSection 内联显示\r\n\r\n下载完成后侧边栏新增\"立即更新\"按钮（折叠态显示图标）\r\n\r\n应用退出时若存在已下载更新，自动启动安装程序（PendingInstaller 全局状态 + ExitRequested 事件钩子）",
+      "version": "1.3.1",
+      "releaseDate": "2026-06-29",
+      "releaseNotes": "- 新增 DNS 容灾监控模块（dns_config/dns_monitor/dns_provider）\n\n  - 支持 DNSPod.cn / DNSPod.com / Aliyun 三大 DNS 服务商\n\n  - 主隧道异常自动切换备用，主隧道恢复自动回切\n\n  - 可自定义失败切换次数、恢复回切次数、轮询间隔\n\n  - 隧道选择支持模糊搜索与高亮，自动获取隧道列表\n\n  - 凭证配置页含各服务商密钥获取指引\n\n  - 切换日志本地 JSON 存储，前端实时事件推送\n\n- 新增系统托盘与窗口关闭拦截\n\n  - 关闭窗口时弹窗提示正在运行的容灾任务\n\n  - 可选择最小化到托盘或退出程序\n\n  - 托盘左键单击恢复窗口，右键菜单含显示/退出\n\n- 版本号升级至 1.3.1",
       "mandatory": false
     }
   ]
