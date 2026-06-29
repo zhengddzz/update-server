@@ -1,243 +1,150 @@
-#!/usr/bin/env node
-/**
- * 多软件发布脚本（单文件版）
- * 用法: node scripts/publish.js
- *
- * 所有数据统一维护在 api/data.json 中。
- * platforms.<os> 为数组，支持同一平台多个安装包变体（exe/msi/dmg/deb/rpm 等）。
- *
- * 主菜单：
- *   [1] 新建软件        — 创建一款新软件
- *   [2] 为已有软件发布新版本
- *
- * 录入安装包时支持两种方式：
- *   - 本地文件路径：自动计算 size/sha256，可选复制到 releases/<appid>/<平台>/
- *   - 完整 URL（http/https 开头）：size/sha256 留空，format 从文件名推断
- */
+// 通用发布脚本：从 _release.tmp.json (单个 release 对象) 生成 platforms 数据并更新 JSON
+// 用法: node scripts/publish.js <version>
+// 例如: node scripts/publish.js 1.3.2
 
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const readline = require('readline');
+const { execFileSync } = require('child_process');
 
-const ROOT = path.join(__dirname, '..');
-const DATA_FILE = path.join(ROOT, 'api', 'data.json');
-const API_DIR = path.join(ROOT, 'api');
-
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const ask = (q) => new Promise((r) => rl.question(q, r));
-
-// 平台列表与默认最低系统要求
-const PLATFORMS = [
-  { key: 'windows', label: 'Windows', minOS: 'Windows 10' },
-  { key: 'macos', label: 'macOS', minOS: 'macOS 11' },
-  { key: 'linux', label: 'Linux', minOS: '' },
-];
-
-// 从文件名/URL 推断安装包格式
-function detectFormat(name) {
-  const f = (name || '').toLowerCase().split('?')[0].split('#')[0];
-  if (f.endsWith('.app.tar.gz') || f.endsWith('.tar.gz')) return 'app.tar.gz';
-  if (f.endsWith('.appimage')) return 'AppImage';
-  const m = f.match(/\.([a-z0-9]+)$/);
-  return m ? m[1] : '';
+const VERSION = process.argv[2];
+if (!VERSION) {
+  console.error('用法: node scripts/publish.js <version>  (如 1.3.2)');
+  process.exit(1);
 }
 
-function sha256(file) {
+const ROOT = path.resolve(__dirname, '..');
+const RELEASE_JSON = path.join(ROOT, '_release.tmp.json');
+const RELEASES_DIR = path.join(ROOT, 'releases', 'node-selector');
+const APP_JSON = path.join(ROOT, 'api', 'node-selector.json');
+const DATA_JSON = path.join(ROOT, 'api', 'data.json');
+const TAG = `v${VERSION}`;
+const U_BASE = 'https://u.zdzz.top';
+const PROXY = 'http://127.0.0.1:7890';
+const SIZE_LIMIT = 25 * 1024 * 1024;
+
+// 文件名 → 平台 / format 映射
+function classify(name) {
+  const l = name.toLowerCase();
+  if (l.endsWith('.exe') || l.endsWith('.msi')) return 'windows';
+  if (l.endsWith('.dmg') || l.endsWith('.app.tar.gz')) return 'macos';
+  if (l.endsWith('.deb') || l.endsWith('.rpm') || l.endsWith('.appimage')) return 'linux';
+  return null;
+}
+function formatOf(name) {
+  const l = name.toLowerCase();
+  if (l.endsWith('.exe')) return 'exe';
+  if (l.endsWith('.msi')) return 'msi';
+  if (l.endsWith('.dmg')) return 'dmg';
+  if (l.endsWith('.app.tar.gz')) return 'app.tar.gz';
+  if (l.endsWith('.deb')) return 'deb';
+  if (l.endsWith('.rpm')) return 'rpm';
+  if (l.endsWith('.appimage')) return 'AppImage';
+  return 'unknown';
+}
+
+// 用 curl + 代理下载
+function download(url, dest) {
+  execFileSync('curl', [
+    '-L', '--proxy', PROXY, '--fail', '-S',
+    '--connect-timeout', '30', '--max-time', '300',
+    '-o', dest, url
+  ], { stdio: 'inherit' });
+}
+
+function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
-function cmpVersion(a, b) {
-  const pa = String(a).split('.').map((n) => parseInt(n, 10) || 0);
-  const pb = String(b).split('.').map((n) => parseInt(n, 10) || 0);
-  for (let i = 0; i < 3; i++) {
-    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
-    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+(async () => {
+  console.log(`发布 ${TAG} ...`);
+  const rel = JSON.parse(fs.readFileSync(RELEASE_JSON, 'utf8'));
+  if (rel.tag_name !== TAG) {
+    console.error(`_release.tmp.json 的 tag_name=${rel.tag_name} 与目标 ${TAG} 不符`);
+    process.exit(1);
   }
-  return 0;
-}
+  console.log(`release: ${rel.name}`);
+  console.log(`published: ${rel.published_at}`);
+  console.log(`assets: ${rel.assets.length}`);
 
-function readData() { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
-function writeData(data) { fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2) + '\n', 'utf8'); }
-// 单软件 API 文件路径：api/<appid>.json
-function appFile(appId) { return path.join(API_DIR, `${appId}.json`); }
-// 写入单软件完整数据
-function writeApp(app) { fs.writeFileSync(appFile(app.id), JSON.stringify(app, null, 2) + '\n', 'utf8'); }
-// 同步 data.json 索引（轻量字段）
-function syncIndex(data) {
-  data.apps = (data.apps || []).map(a => {
-    const full = readApp(a.id);
-    return {
-      id: a.id, name: a.name, version: a.version,
-      releaseDate: a.releaseDate, releaseNotes: a.releaseNotes, mandatory: !!a.mandatory
-    };
-  });
-  writeData(data);
-}
-// 读取单软件完整数据（若不存在返回 null）
-function readApp(appId) {
-  const f = appFile(appId);
-  if (!fs.existsSync(f)) return null;
-  return JSON.parse(fs.readFileSync(f, 'utf8'));
-}
+  const platforms = { windows: [], macos: [], linux: [] };
+  const releaseDate = rel.published_at.slice(0, 10);
 
-// 为单个平台录入多个安装包，返回数组
-async function collectPlatformPackages(baseUrl, appId, version, p) {
-  const arr = [];
-  console.log(`\n--- ${p.label} ---`);
-  while (true) {
-    const ans = (await ask(`  添加 ${p.label} 安装包? (y/N): `)).trim().toLowerCase();
-    if (ans !== 'y') break;
-    const input = (await ask('  本地路径 或 完整URL (空结束): ')).trim().replace(/^["']|["']$/g, '');
-    if (!input) break;
-    let pkg;
-    if (/^https?:\/\//.test(input)) {
-      // 直接填 URL：size/sha256 留空
-      pkg = { version, url: input, size: 0, sha256: '', format: detectFormat(input), minOS: p.minOS };
-    } else if (fs.existsSync(input)) {
-      // 本地文件：计算 size/sha256，可选复制到仓库
-      const basename = path.basename(input);
-      const finalUrl = `${baseUrl}/releases/${appId}/${p.key}/${basename}`;
-      const relDir = path.join(ROOT, 'releases', appId, p.key);
-      fs.mkdirSync(relDir, { recursive: true });
-      const dest = path.join(relDir, basename);
-      const doCopy = (await ask(`  复制到 ${path.relative(ROOT, dest)}? (Y/n): `)).trim().toLowerCase();
-      if (doCopy !== 'n') { fs.copyFileSync(input, dest); console.log('  已复制。'); }
-      pkg = { version, url: finalUrl, size: fs.statSync(input).size, sha256: sha256(input), format: detectFormat(basename), minOS: p.minOS };
+  for (const asset of rel.assets) {
+    const name = asset.name;
+    const platform = classify(name);
+    const format = formatOf(name);
+    if (!platform) {
+      console.log(`跳过 ${name}（无法识别平台）`);
+      continue;
+    }
+    const size = asset.size;
+    const isLarge = size > SIZE_LIMIT;
+    let url, sha256;
+
+    if (isLarge) {
+      url = asset.browser_download_url;
+      sha256 = '';
+      console.log(`[GitHub 链接] ${name} (${(size/1048576).toFixed(2)} MB) → ${url}`);
     } else {
-      console.log('  路径无效，跳过。');
-      continue;
+      const destDir = path.join(RELEASES_DIR, platform);
+      if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+      const localPath = path.join(destDir, name);
+      if (fs.existsSync(localPath) && fs.statSync(localPath).size === size) {
+        console.log(`[已存在] ${name} (${(size/1048576).toFixed(2)} MB)`);
+      } else {
+        console.log(`[下载中] ${name} (${(size/1048576).toFixed(2)} MB)...`);
+        download(asset.browser_download_url, localPath);
+        console.log(`[已完成] ${name}`);
+      }
+      sha256 = sha256File(localPath);
+      url = `${U_BASE}/releases/node-selector/${platform}/${name}`;
+      console.log(`  sha256: ${sha256}`);
     }
-    arr.push(pkg);
-    console.log(`  ✓ ${pkg.format} -> ${pkg.url}`);
-  }
-  return arr;
-}
 
-// 采集所有平台安装包，返回 platforms 对象（值为数组）
-async function collectPlatforms(baseUrl, appId, version) {
-  const platforms = {};
-  for (const p of PLATFORMS) {
-    const arr = await collectPlatformPackages(baseUrl, appId, version, p);
-    if (arr.length) platforms[p.key] = arr;
-  }
-  return platforms;
-}
-
-async function createApp(data, baseUrl) {
-  const appId = (await ask('软件 ID (英文，如 node-selector): ')).trim();
-  if (!appId || !/^[a-z0-9-]+$/.test(appId)) { console.log('ID 无效，只能含小写字母、数字、连字符。'); return; }
-  if ((data.apps || []).some((a) => a.id === appId)) { console.log(`软件 ${appId} 已存在。`); return; }
-  const name = (await ask('软件名称 (如 节点推荐器): ')).trim() || appId;
-  const version = (await ask('首个版本号 (如 1.0.0): ')).trim() || '1.0.0';
-  const notes = (await ask('更新说明: ')).trim();
-  const mandatory = (await ask('是否强制更新? (y/N): ')).trim().toLowerCase() === 'y';
-  const releaseDate = new Date().toISOString().slice(0, 10);
-
-  const platforms = await collectPlatforms(baseUrl, appId, version);
-
-  // 完整软件数据写入 api/<id>.json
-  const app = {
-    id: appId, name, version, releaseDate,
-    releaseNotes: notes, mandatory,
-    platforms,
-    changelog: [{ version, releaseDate, releaseNotes: notes, mandatory }],
-  };
-  writeApp(app);
-
-  // data.json 仅保留轻量索引
-  data.apps = data.apps || [];
-  data.apps.push({
-    id: appId, name, version, releaseDate,
-    releaseNotes: notes, mandatory,
-  });
-  writeData(data);
-
-  console.log(`\n✓ 已创建软件「${name}」(${appId}) v${version}`);
-  console.log(`  软件API: ${baseUrl}/api/${appId}.json`);
-  console.log(`  索引:    ${baseUrl}/api/data.json`);
-}
-
-async function releaseVersion(data, baseUrl) {
-  const apps = data.apps || [];
-  if (!apps.length) { console.log('暂无软件，请先新建。'); return; }
-  console.log('\n选择软件:');
-  apps.forEach((a, i) => console.log(`  [${i + 1}] ${a.name} (${a.id}) v${a.version}`));
-  const idx = parseInt((await ask('\n序号: ')).trim(), 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= apps.length) { console.log('无效选择。'); return; }
-  const idxEntry = apps[idx];
-  // 从单软件文件读取完整数据
-  const app = readApp(idxEntry.id);
-  if (!app) { console.log(`错误: api/${idxEntry.id}.json 不存在，请先新建。`); return; }
-
-  console.log(`\n当前版本: ${app.version}`);
-  const version = (await ask('新版本号 (如 1.1.0): ')).trim();
-  if (!version) { console.log('已取消。'); return; }
-  if (cmpVersion(version, app.version) <= 0) {
-    if ((await ask(`警告: ${version} 不高于 ${app.version}，仍继续? (y/N): `)).trim().toLowerCase() !== 'y') return;
-  }
-  const notes = (await ask('更新说明: ')).trim();
-  const mandatory = (await ask('是否强制更新? (y/N): ')).trim().toLowerCase() === 'y';
-  const releaseDate = new Date().toISOString().slice(0, 10);
-
-  app.platforms = app.platforms || {};
-  for (const p of PLATFORMS) {
-    console.log(`\n--- ${p.label} ---`);
-    const cur = app.platforms[p.key];
-    if (Array.isArray(cur) && cur.length) {
-      console.log(`  当前 ${cur.length} 个安装包:`);
-      cur.forEach((c) => console.log(`    - ${c.format}: ${c.url}`));
-    }
-    const ans = (await ask(`  重新设置 ${p.label} 安装包吗? (y/N): `)).trim().toLowerCase();
-    if (ans !== 'y') {
-      if (Array.isArray(cur)) cur.forEach((c) => { c.version = version; });
-      continue;
-    }
-    const arr = await collectPlatformPackages(baseUrl, app.id, version, p);
-    if (arr.length) app.platforms[p.key] = arr;
-    else delete app.platforms[p.key];
+    const entry = {
+      version: VERSION,
+      url,
+      size,
+      sha256,
+      format,
+      minOS: platform === 'windows' ? 'Windows 10' : platform === 'macos' ? 'macOS 11' : ''
+    };
+    if (isLarge) entry.note = '体积超 25MB，走 GitHub 直链';
+    platforms[platform].push(entry);
   }
 
-  app.version = version;
-  app.releaseDate = releaseDate;
-  app.releaseNotes = notes;
-  app.mandatory = mandatory;
+  // 排序：exe/msi, dmg/app.tar.gz, deb/rpm/AppImage
+  const order = { exe: 0, msi: 1, dmg: 0, 'app.tar.gz': 1, deb: 0, rpm: 1, AppImage: 2 };
+  for (const os of Object.keys(platforms)) {
+    platforms[os].sort((a, b) => (order[a.format] ?? 99) - (order[b.format] ?? 99));
+  }
 
-  // 更新 changelog（去重后追加）
-  app.changelog = (app.changelog || []).filter((c) => c.version !== version);
-  app.changelog.unshift({ version, releaseDate, releaseNotes: notes, mandatory });
-  app.changelog.sort((a, b) => cmpVersion(b.version, a.version));
+  // 更新 node-selector.json
+  const appData = JSON.parse(fs.readFileSync(APP_JSON, 'utf8'));
+  const releaseNotes = (rel.body || '').replace(/\r\n/g, '\n').trim();
+  appData.version = VERSION;
+  appData.releaseDate = releaseDate;
+  appData.releaseNotes = releaseNotes;
+  appData.platforms = platforms;
 
-  // 写入单软件文件
-  writeApp(app);
-  // 同步 data.json 索引
-  idxEntry.name = app.name;
-  idxEntry.version = app.version;
-  idxEntry.releaseDate = app.releaseDate;
-  idxEntry.releaseNotes = app.releaseNotes;
-  idxEntry.mandatory = app.mandatory;
-  writeData(data);
+  const idx = appData.changelog.findIndex((c) => c.version === VERSION);
+  const entry = { version: VERSION, releaseDate, releaseNotes, mandatory: false };
+  if (idx >= 0) appData.changelog[idx] = entry;
+  else appData.changelog.unshift(entry);
 
-  console.log(`\n✓ 已发布 ${app.name} v${version}`);
-  console.log(`  软件API: ${baseUrl}/api/${app.id}.json`);
-  console.log('\n下一步: git add . && git commit -m "release: ' + app.id + ' v' + version + '" && git push');
-}
+  fs.writeFileSync(APP_JSON, JSON.stringify(appData, null, 2) + '\n', 'utf8');
+  console.log(`已更新 ${path.relative(ROOT, APP_JSON)}`);
 
-async function main() {
-  const data = readData();
-  const baseUrl = (data.baseUrl || '').replace(/\/$/, '');
-  if (!baseUrl) { console.log('请在 api/data.json 设置 baseUrl'); rl.close(); return; }
-  console.log(`更新服务 · baseUrl = ${baseUrl}`);
-  console.log(`数据文件: api/data.json`);
-  console.log(`软件数量: ${(data.apps || []).length}\n`);
-  console.log('选择操作:');
-  console.log('  [1] 新建软件');
-  console.log('  [2] 为已有软件发布新版本');
-  const op = (await ask('\n操作 (1/2): ')).trim();
-  if (op === '1') await createApp(data, baseUrl);
-  else if (op === '2') await releaseVersion(data, baseUrl);
-  else console.log('无效操作。');
-  rl.close();
-}
-
-main().catch((e) => { console.error('出错:', e); process.exit(1); });
+  // 更新 data.json 索引
+  const data = JSON.parse(fs.readFileSync(DATA_JSON, 'utf8'));
+  const ai = data.apps.findIndex((a) => a.id === 'node-selector');
+  if (ai >= 0) {
+    data.apps[ai].version = VERSION;
+    data.apps[ai].releaseDate = releaseDate;
+    data.apps[ai].releaseNotes = releaseNotes;
+  }
+  fs.writeFileSync(DATA_JSON, JSON.stringify(data, null, 2) + '\n', 'utf8');
+  console.log(`已更新 ${path.relative(ROOT, DATA_JSON)}`);
+  console.log('\n完成！');
+})().catch((e) => { console.error('错误:', e); process.exit(1); });

@@ -6,9 +6,9 @@
     {
       "id": "node-selector",
       "name": "ChmlFrp 社区工具箱",
-      "version": "1.3.1",
+      "version": "1.3.2",
       "releaseDate": "2026-06-29",
-      "releaseNotes": "- 新增 DNS 容灾监控模块（dns_config/dns_monitor/dns_provider）\n\n  - 支持 DNSPod.cn / DNSPod.com / Aliyun 三大 DNS 服务商\n\n  - 主隧道异常自动切换备用，主隧道恢复自动回切\n\n  - 可自定义失败切换次数、恢复回切次数、轮询间隔\n\n  - 隧道选择支持模糊搜索与高亮，自动获取隧道列表\n\n  - 凭证配置页含各服务商密钥获取指引\n\n  - 切换日志本地 JSON 存储，前端实时事件推送\n\n- 新增系统托盘与窗口关闭拦截\n\n  - 关闭窗口时弹窗提示正在运行的容灾任务\n\n  - 可选择最小化到托盘或退出程序\n\n  - 托盘左键单击恢复窗口，右键菜单含显示/退出\n\n- 版本号升级至 1.3.1",
+      "releaseNotes": "更新内容：\n1.修复背景图/视频添加不生效：get_app_data_dir 统一使用 Tauri 标准 app_data_dir，使后端存储路径与前端 fs 插件授权范围一致\n2.修复手动检查更新下载完成后侧边栏未显示立即更新按钮：Settings 下载完成后派发 update-downloaded 事件，App 监听同步状态；关闭弹窗不再重置 downloaded\n3.去除未实现的音效设置开关（开关硬编码为关闭且无播放代码）\n4.修复 DNSPod.cn API Key 获取链接为 account/token/apikey\n5.设置页新增反馈与建议入口，跳转 GitHub Issues\n6.背景图/视频加载失败时增加 toast 错误提示，便于排查",
       "mandatory": false
     }
   ]

@@ -5,6 +5,7 @@ node_modules/
 *.tmp
 # 临时提交信息文件，不上传
 _commitmsg.txt
+_release.tmp.json
 # OpenAPI 文档仅本地维护，不上传 GitHub
 docs/openapi.yaml
 # AppImage 超过 EdgeOne Pages 25MB 限制，不入库，走 GitHub Releases 链接
