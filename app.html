@@ -31,23 +31,30 @@
   .badge.force { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger-border); }
 
   section.block { padding: 36px 0; border-bottom: 1px solid var(--line); animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
-  .block-title { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 18px; }
+  .block-title { font-family: 'Fraunces',serif; font-size: 1.45rem; font-weight: 500; letter-spacing: -0.01em; color: var(--fg); margin-bottom: 20px; display: flex; align-items: baseline; gap: 10px; }
+  .block-title .sub { font-family: 'Spline Sans',sans-serif; font-size: .78rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
 
-  .platform-group { margin-bottom: 18px; }
+  /* 平台分组 */
+  .platform-group { margin-bottom: 22px; }
   .platform-group:last-child { margin-bottom: 0; }
-  .p-group-title { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 10px; }
-  .platform { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; transition: border-color .2s; }
-  .platform:hover { border-color: var(--accent-border); }
-  .platform:last-child { margin-bottom: 0; }
-  .p-label { font-weight: 600; font-size: .92rem; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
-  .p-format { font-size: .72rem; font-weight: 400; color: var(--faint); font-family: 'JetBrains Mono',monospace; }
-  .p-line1 { display: flex; gap: 14px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
-  .p-ver { font-family: 'JetBrains Mono',monospace; color: var(--fg); }
-  .p-size { font-variant-numeric: tabular-nums; }
-  .p-dl { margin-top: 8px; }
-  .p-dl a { font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--accent); text-decoration: none; word-break: break-all; border-bottom: 1px solid transparent; transition: border-color .2s; }
-  .p-dl a:hover { border-bottom-color: var(--accent); }
-  .p-hash { margin-top: 5px; font-family: 'JetBrains Mono',monospace; font-size: .72rem; color: var(--faint); word-break: break-all; }
+  .p-group-title { font-family: 'Fraunces',serif; font-size: 1rem; font-weight: 500; color: var(--fg); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .p-group-title::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* 密集列表：每个安装包一行 */
+  .dl-list { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+  .dl-row { display: grid; grid-template-columns: 64px 70px 78px 1fr auto auto; gap: 14px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--line); transition: background .15s; }
+  .dl-row:last-child { border-bottom: none; }
+  .dl-row:hover { background: var(--accent-soft); }
+  .dl-format { font-family: 'JetBrains Mono',monospace; font-weight: 500; font-size: .82rem; color: var(--fg); text-transform: lowercase; }
+  .dl-ver { font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); }
+  .dl-size { font-variant-numeric: tabular-nums; font-size: .8rem; color: var(--muted); }
+  .dl-filename { font-family: 'JetBrains Mono',monospace; font-size: .74rem; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dl-filename .ext-note { color: var(--accent); font-style: italic; }
+  .dl-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; font-size: .78rem; font-weight: 500; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 6px; text-decoration: none; transition: all .15s; white-space: nowrap; }
+  .dl-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .dl-sha { font-family: 'JetBrains Mono',monospace; font-size: .7rem; color: var(--faint); cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: all .15s; user-select: none; white-space: nowrap; }
+  .dl-sha:hover { color: var(--accent); background: var(--accent-soft); }
+  .dl-sha.copied { color: var(--accent); }
 
   .ver-item { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--line); }
   .ver-item:last-child { border-bottom: none; }
@@ -101,7 +108,7 @@
   .icp { display: flex; gap: 16px; flex-wrap: wrap; }
 
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  @media (max-width: 600px) { .platform { grid-template-columns: 1fr; } .ver-item { flex-direction: column; gap: 4px; } .ver-date { min-width: 0; } }
+  @media (max-width: 600px) { .dl-row { grid-template-columns: 1fr auto; gap: 6px 14px; padding: 10px 12px; } .dl-row .dl-filename { grid-column: 1 / -1; order: 5; } .dl-row .dl-sha { grid-column: 1 / -1; order: 6; } .ver-item { flex-direction: column; gap: 4px; } .ver-date { min-width: 0; } }
 </style>
 </head>
 <body>
@@ -162,19 +169,23 @@ async function load() {
   for (const k of order) {
     const arr = (info.platforms || {})[k];
     if (!Array.isArray(arr) || !arr.length) continue;
-    platformsHtml += `<div class="platform-group"><div class="p-group-title">${labels[k]}</div>`;
+    platformsHtml += `<div class="platform-group"><div class="p-group-title">${labels[k]}</div><div class="dl-list">`;
     arr.forEach(p => {
+      const fileName = (p.url || '').split('/').pop() || p.url || '';
+      const shaShort = p.sha256 ? p.sha256.slice(0, 12) + '…' : '—';
+      const shaFull = p.sha256 || '';
+      const noteHtml = p.note ? ` <span class="ext-note">(${esc(p.note)})</span>` : '';
       platformsHtml += `
-      <div class="platform">
-        <div class="p-label">${esc(p.format || '')}<span class="p-format">${esc((p.url||'').split('.').pop()||'')}</span></div>
-        <div>
-          <div class="p-line1"><span class="p-ver">v${esc(p.version)}</span><span class="p-size">${fmtSize(p.size)}</span></div>
-          <div class="p-dl"><a href="${esc(p.url)}" target="_blank">${esc(p.url)}</a></div>
-          <div class="p-hash">SHA-256 ${esc(p.sha256 || '—')}</div>
-        </div>
+      <div class="dl-row">
+        <span class="dl-format">${esc((p.format || '').toLowerCase())}</span>
+        <span class="dl-ver">v${esc(p.version)}</span>
+        <span class="dl-size">${fmtSize(p.size)}</span>
+        <span class="dl-filename" title="${esc(fileName)}">${esc(fileName)}${noteHtml}</span>
+        <a class="dl-btn" href="${esc(p.url)}" target="_blank" download>下载 ↓</a>
+        <span class="dl-sha" data-sha="${esc(shaFull)}" title="点击复制完整 SHA-256">SHA ${esc(shaShort)}</span>
       </div>`;
     });
-    platformsHtml += `</div>`;
+    platformsHtml += `</div></div>`;
   }
 
   const changelog = info.changelog || [];
@@ -196,12 +207,12 @@ async function load() {
 
   document.getElementById('content').innerHTML = `
     <section class="block" style="animation-delay:.1s">
-      <div class="block-title">当前版本下载</div>
+      <div class="block-title">当前版本下载 <span class="sub">Current Release · v${esc(info.version)}</span></div>
       ${platformsHtml || '<p style="color:var(--faint)">暂无可用平台安装包</p>'}
     </section>
     ${changelog.length ? `
     <section class="block" style="animation-delay:.2s">
-      <div class="block-title">版本历史</div>
+      <div class="block-title">版本历史 <span class="sub">Changelog</span></div>
       ${historyHtml}
     </section>` : ''}`;
   // 版本介绍过长时自动折叠，点击展开/收起
@@ -217,6 +228,23 @@ async function load() {
       };
       el.parentElement.appendChild(btn);
     }
+  });
+  // SHA 点击复制（带短暂反馈）
+  document.querySelectorAll('.dl-sha').forEach(el => {
+    el.addEventListener('click', async () => {
+      const sha = el.dataset.sha;
+      if (!sha) return;
+      try {
+        await navigator.clipboard.writeText(sha);
+        const old = el.textContent;
+        el.textContent = '已复制 ✓';
+        el.classList.add('copied');
+        setTimeout(() => { el.textContent = old; el.classList.remove('copied'); }, 1200);
+      } catch (e) {
+        // 降级：弹出完整 SHA
+        alert(sha);
+      }
+    });
   });
 }
 load().catch(e => {
