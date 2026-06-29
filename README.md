@@ -1,3 +1,5 @@
+QQ群：[878272744](https://qm.qq.com/q/Jh7BEdIGg6')
+
 # update-server · ddzz软件更新服务
 
 提供相关软件自动更新检测 API 与下载服务。基于 EdgeOne Pages 静态托管（域名 `u.zdzz.top`），无需服务器、无需数据库。
