@@ -1,68 +1,68 @@
 {
   "id": "node-selector",
   "name": "ChmlFrp 社区工具箱",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "releaseDate": "2026-06-29",
-  "releaseNotes": "更新内容：\n1.修复背景图/视频添加不生效：get_app_data_dir 统一使用 Tauri 标准 app_data_dir，使后端存储路径与前端 fs 插件授权范围一致\n2.修复手动检查更新下载完成后侧边栏未显示立即更新按钮：Settings 下载完成后派发 update-downloaded 事件，App 监听同步状态；关闭弹窗不再重置 downloaded\n3.去除未实现的音效设置开关（开关硬编码为关闭且无播放代码）\n4.修复 DNSPod.cn API Key 获取链接为 account/token/apikey\n5.设置页新增反馈与建议入口，跳转 GitHub Issues\n6.背景图/视频加载失败时增加 toast 错误提示，便于排查",
+  "releaseNotes": "### 节点测试\n\n- **统一测试按钮**：顶部「全部测试」/「节点测试」与节点右侧测试按钮统一调用同一组件。\n- **取消逻辑优化**：测试过程中点击「取消」，等待当前节点测试完成后再停止后续节点，不立即中断。\n- **日志清除修复**：修复停止后重新打开测试对话框，上次日志仍残留的问题。\n- **顶栏状态同步**：修复点击「全部测试」后顶栏测试状态不同步的问题。\n\n### 登录与安全\n\n- **登录状态定期校验**：每 1 分钟调用 `/userinfo` 接口验证 token，过期或被踢下线时自动清理登录状态并提示，避免用户无感知。\n\n### DNS 容灾\n\n- **隧道列表懒加载**：仅在「新建任务」/「编辑任务」打开对话框时调用隧道 API，不再每次进入 DNS 容灾页面都请求。\n- **监控任务描述文案**：同步可自定义的轮询间隔与失败/恢复阈值，修正原文案「60秒轮询」与「阈值可自定义」表述不准。\n\n### 设置页\n\n- **数据维护区块**：新增「清除临时隧道」按钮，一键删除测速过程中遗留的临时隧道（名称以 `speedtest_` 开头），支持二次确认与失败重试。\n\n### 界面\n\n- **节点推荐表格横向滚动**：修复窄窗口下列显示不全且无法横向滚动的问题，给 `Table` 设置 `min-w-[820px]` 并改用原生滚动条。",
   "mandatory": false,
   "platforms": {
     "windows": [
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.2_x64-setup.exe",
-        "size": 3705843,
-        "sha256": "e35a26b18e2301f52dcfad9918442d37a3f3985a15c74fedc263bdfb6ab97c0f",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.3_x64-setup.exe",
+        "size": 3710311,
+        "sha256": "af37de00867c6d74d31f40a3659a2662cd7c97ea9a9d33080c6cade6ae5ba790",
         "format": "exe",
         "minOS": "Windows 10"
       },
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.2_x64_zh-CN.msi",
-        "size": 5373952,
-        "sha256": "1bc099e71c08a302f4284fa15dd8af5ef92949f66b1181068c86c949adc32ae2",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.3_x64_zh-CN.msi",
+        "size": 5378048,
+        "sha256": "05f6e64b09b4ff70662983da58ff60ad9a0e59ac77f70b0da88d19724f3a0490",
         "format": "msi",
         "minOS": "Windows 10"
       }
     ],
     "macos": [
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.2_aarch64.dmg",
-        "size": 5647727,
-        "sha256": "8444653069682c6e432dac87b90f44d039d19e1bd3a1cd31a8f58835302361a3",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.3_aarch64.dmg",
+        "size": 5645573,
+        "sha256": "728ad77b1af8586f256508dcac5e4df44f69ef7c1a1bbb4511dbc0eeafca8472",
         "format": "dmg",
         "minOS": "macOS 11"
       },
       {
-        "version": "1.3.2",
+        "version": "1.3.3",
         "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._aarch64.app.tar.gz",
-        "size": 4936259,
-        "sha256": "8cc770a422e44f6e807cb34ca1ec824d2e34d135cf3587ba84a3b21a909fd964",
+        "size": 4932246,
+        "sha256": "25d6de8c56a4b1fe8e9606399ad971c8d2be888fc4de157b981de2c7bd1dd386",
         "format": "app.tar.gz",
         "minOS": "macOS 11"
       }
     ],
     "linux": [
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.2_amd64.deb",
-        "size": 5469930,
-        "sha256": "652f9588bc939ccbaddfc7ea6057c903c7e9eb567120aa40d38d746f1b70726b",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.3_amd64.deb",
+        "size": 5465576,
+        "sha256": "9eb1e45ee3509f5821bbcc9c169cddc01d71e3edf593d4c83800e87470cea46c",
         "format": "deb",
         "minOS": ""
       },
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp.-1.3.2-1.x86_64.rpm",
-        "size": 5471182,
-        "sha256": "147ce0a27286cf823d8a5fd338e1e4354aba8efc1ec9eab7f6b25fd2bb43377c",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp.-1.3.3-1.x86_64.rpm",
+        "size": 5466785,
+        "sha256": "953dd74fce13f8e698a284a7179bae34991f46b07c3dc3918a6c5053f48514bd",
         "format": "rpm",
         "minOS": ""
       },
       {
-        "version": "1.3.2",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.2/ChmlFrp._1.3.2_amd64.AppImage",
-        "size": 81877496,
+        "version": "1.3.3",
+        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.3/ChmlFrp._1.3.3_amd64.AppImage",
+        "size": 81869304,
         "sha256": "",
         "format": "AppImage",
         "minOS": "",
@@ -71,6 +71,12 @@
     ]
   },
   "changelog": [
+    {
+      "version": "1.3.3",
+      "releaseDate": "2026-06-29",
+      "releaseNotes": "### 节点测试\n\n- **统一测试按钮**：顶部「全部测试」/「节点测试」与节点右侧测试按钮统一调用同一组件。\n- **取消逻辑优化**：测试过程中点击「取消」，等待当前节点测试完成后再停止后续节点，不立即中断。\n- **日志清除修复**：修复停止后重新打开测试对话框，上次日志仍残留的问题。\n- **顶栏状态同步**：修复点击「全部测试」后顶栏测试状态不同步的问题。\n\n### 登录与安全\n\n- **登录状态定期校验**：每 1 分钟调用 `/userinfo` 接口验证 token，过期或被踢下线时自动清理登录状态并提示，避免用户无感知。\n\n### DNS 容灾\n\n- **隧道列表懒加载**：仅在「新建任务」/「编辑任务」打开对话框时调用隧道 API，不再每次进入 DNS 容灾页面都请求。\n- **监控任务描述文案**：同步可自定义的轮询间隔与失败/恢复阈值，修正原文案「60秒轮询」与「阈值可自定义」表述不准。\n\n### 设置页\n\n- **数据维护区块**：新增「清除临时隧道」按钮，一键删除测速过程中遗留的临时隧道（名称以 `speedtest_` 开头），支持二次确认与失败重试。\n\n### 界面\n\n- **节点推荐表格横向滚动**：修复窄窗口下列显示不全且无法横向滚动的问题，给 `Table` 设置 `min-w-[820px]` 并改用原生滚动条。",
+      "mandatory": false
+    },
     {
       "version": "1.3.2",
       "releaseDate": "2026-06-29",

@@ -32,9 +32,9 @@ GET {BASE}/api/data.json
     {
       "id": "node-selector",
       "name": "ChmlFrp 社区工具箱",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "releaseDate": "2026-06-29",
-      "releaseNotes": "更新内容：1.修复背景图/视频添加不生效...",
+      "releaseNotes": "### 节点测试\n- 统一测试按钮...",
       "mandatory": false
     }
   ]
@@ -55,23 +55,23 @@ GET {BASE}/api/<appid>.json
 {
   "id": "node-selector",
   "name": "ChmlFrp 社区工具箱",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "releaseDate": "2026-06-29",
-  "releaseNotes": "更新内容：1.修复背景图/视频添加不生效...",
+  "releaseNotes": "### 节点测试\n- 统一测试按钮...",
   "mandatory": false,
   "platforms": {
     "windows": [
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.2_x64-setup.exe",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.3_x64-setup.exe",
         "size": 3709238,
-        "sha256": "e35a26b18e23...",
+        "sha256": "af37de00867c...",
         "format": "exe",
         "minOS": "Windows 10"
       },
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.2_x64_zh-CN.msi",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/windows/ChmlFrp._1.3.3_x64_zh-CN.msi",
         "size": 5378048,
         "sha256": "1bc099e71c08...",
         "format": "msi",
@@ -80,15 +80,15 @@ GET {BASE}/api/<appid>.json
     ],
     "macos": [
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.2_aarch64.dmg",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._1.3.3_aarch64.dmg",
         "size": 5647326,
         "sha256": "844465306968...",
         "format": "dmg",
         "minOS": "macOS 11"
       },
       {
-        "version": "1.3.2",
+        "version": "1.3.3",
         "url": "https://u.zdzz.top/releases/node-selector/macos/ChmlFrp._aarch64.app.tar.gz",
         "size": 4934924,
         "sha256": "8cc770a422e4...",
@@ -98,24 +98,24 @@ GET {BASE}/api/<appid>.json
     ],
     "linux": [
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.2_amd64.deb",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp._1.3.3_amd64.deb",
         "size": 5466816,
         "sha256": "652f9588bc93...",
         "format": "deb",
         "minOS": ""
       },
       {
-        "version": "1.3.2",
-        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp.-1.3.2-1.x86_64.rpm",
+        "version": "1.3.3",
+        "url": "https://u.zdzz.top/releases/node-selector/linux/ChmlFrp.-1.3.3-1.x86_64.rpm",
         "size": 5468013,
         "sha256": "147ce0a27286...",
         "format": "rpm",
         "minOS": ""
       },
       {
-        "version": "1.3.2",
-        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.2/ChmlFrp._1.3.2_amd64.AppImage",
+        "version": "1.3.3",
+        "url": "https://github.com/zhengddzz/ChmlFrp-NodeSpeedTest/releases/download/v1.3.3/ChmlFrp._1.3.3_amd64.AppImage",
         "size": 81869304,
         "sha256": "",
         "format": "AppImage",
@@ -126,7 +126,7 @@ GET {BASE}/api/<appid>.json
   },
   "changelog": [
     {
-      "version": "1.3.2",
+      "version": "1.3.3",
       "releaseDate": "2026-06-29",
       "releaseNotes": "更新内容：1.修复背景图/视频添加不生效...",
       "mandatory": false
